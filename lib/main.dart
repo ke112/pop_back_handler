@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pop_demo/ios_swipe_back_detector.dart';
 
 void main() {
   runApp(const MyApp());
@@ -43,6 +44,12 @@ class HomePage extends StatelessWidget {
               },
               child: const Text("测试 PopScope 最新版"),
             ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const PopScopeTestCustomPage()));
+              },
+              child: const Text("测试 PopScope 自定义版"),
+            ),
           ],
         ),
       ),
@@ -75,6 +82,14 @@ class _BackListenerPageState extends State<BackListenerPage> {
         false;
   }
 
+  // 统一的返回处理逻辑
+  Future<void> _handlePopRequest() async {
+    bool isExit = await _showExitConfirmDialog();
+    if (isExit && mounted) {
+      Navigator.pop(context, "pop_result");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -85,8 +100,7 @@ class _BackListenerPageState extends State<BackListenerPage> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () async {
-              bool isExit = await _showExitConfirmDialog();
-              if (isExit) Navigator.pop(context);
+              await _handlePopRequest();
             },
           ),
         ),
@@ -122,6 +136,14 @@ class _PopScopeTestOldPageState extends State<PopScopeTestOldPage> {
         false;
   }
 
+  // 统一的返回处理逻辑
+  Future<void> _handlePopRequest() async {
+    bool isExit = await _showExitConfirmDialog();
+    if (isExit && mounted) {
+      Navigator.pop(context, "pop_result");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -131,11 +153,7 @@ class _PopScopeTestOldPageState extends State<PopScopeTestOldPage> {
       onPopInvoked: (bool didPop) async {
         // didPop 表示是否已经由框架完成了 pop 操作（这里因 canPop=false，didPop 始终为 false）
         if (!didPop) {
-          bool isExit = await _showExitConfirmDialog();
-          if (isExit) {
-            // 手动执行返回
-            if (mounted) Navigator.pop(context);
-          }
+          await _handlePopRequest();
         }
       },
       child: Scaffold(
@@ -182,6 +200,14 @@ class _PopScopeTestPageState extends State<PopScopeTestPage> {
         false;
   }
 
+  // 统一的返回处理逻辑
+  Future<void> _handlePopRequest() async {
+    bool isExit = await _showExitConfirmDialog();
+    if (isExit && mounted) {
+      Navigator.pop(context, "pop_result");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -192,12 +218,7 @@ class _PopScopeTestPageState extends State<PopScopeTestPage> {
       // 参数2：result - 页面返回时携带的结果（这里暂时用不到）
       onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (!didPop) {
-          // 仅当框架未自动pop时，手动处理
-          bool isExit = await _showExitConfirmDialog();
-          if (isExit && mounted) {
-            // 手动执行返回，可携带结果（第二个参数）
-            Navigator.pop(context, "pop_result");
-          }
+          await _handlePopRequest();
         }
       },
       child: Scaffold(
@@ -213,6 +234,68 @@ class _PopScopeTestPageState extends State<PopScopeTestPage> {
           ),
         ),
         body: const Center(child: Text("尝试系统返回或点击左上角返回\n（onPopInvokedWithResult）")),
+      ),
+    );
+  }
+}
+
+// 适配最新版 PopScope（使用 onPopInvokedWithResult）
+// 解决 iOS 侧滑返回在 canPop: false 时不触发回调的问题
+class PopScopeTestCustomPage extends StatefulWidget {
+  const PopScopeTestCustomPage({super.key});
+
+  @override
+  State<PopScopeTestCustomPage> createState() => _PopScopeTestCustomPageState();
+}
+
+class _PopScopeTestCustomPageState extends State<PopScopeTestCustomPage> {
+  // 弹窗逻辑复用
+  Future<bool> _showExitConfirmDialog() async {
+    return await showDialog<bool>(
+          context: context,
+          builder:
+              (context) => AlertDialog(
+                title: const Text("提示"),
+                content: const Text("确定要退出当前页面吗？（PopScope 最新版）"),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("取消")),
+                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("确定")),
+                ],
+              ),
+        ) ??
+        false;
+  }
+
+  // 统一的返回处理逻辑
+  Future<void> _handlePopRequest() async {
+    bool isExit = await _showExitConfirmDialog();
+    if (isExit && mounted) {
+      Navigator.pop(context, "pop_result");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      // canPop: false 阻止框架默认返回行为
+      canPop: false,
+      // 新回调：onPopInvokedWithResult（替代废弃的 onPopInvoked）
+      // 注意：iOS 侧滑在 canPop: false 时不会触发此回调，需要额外处理
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (!didPop) {
+          await _handlePopRequest();
+        }
+      },
+      child: IOSSwipeBackDetector(
+        // 仅在 iOS 平台启用侧滑检测
+        onSwipeBack: _handlePopRequest,
+        child: Scaffold(
+          appBar: AppBar(
+            title: const Text("PopScope 最新版示例"),
+            leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _handlePopRequest),
+          ),
+          body: const Center(child: Text("尝试系统返回或点击左上角返回\n（onPopInvokedWithResult）\n\niOS 侧滑返回已支持")),
+        ),
       ),
     );
   }
