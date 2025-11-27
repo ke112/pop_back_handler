@@ -2,44 +2,66 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
-/// iOS 侧滑返回检测器
-/// 用于解决 PopScope canPop: false 时 iOS 侧滑手势不触发回调的问题
-class IOSSwipeBackDetector extends StatefulWidget {
-  const IOSSwipeBackDetector({
+/// 统一的返回事件处理器
+/// 集成 PopScope + iOS 侧滑检测，对外只暴露一个回调
+class PopBackHandler extends StatefulWidget {
+  const PopBackHandler({
     super.key,
     required this.child,
-    required this.onSwipeBack,
+    required this.onPopRequested,
+    this.canPop = false,
     this.edgeWidth = 20.0,
     this.swipeThreshold = 100.0,
   });
 
   final Widget child;
-  final VoidCallback onSwipeBack;
 
-  /// 边缘触发区域宽度
+  /// 统一的返回事件回调
+  /// 当用户尝试返回时触发（Android 返回键、iOS 侧滑）
+  final VoidCallback onPopRequested;
+
+  /// 是否允许系统默认返回行为
+  /// false: 阻止默认返回，需手动处理
+  /// true: 允许系统自动返回
+  final bool canPop;
+
+  /// iOS 边缘触发区域宽度
   final double edgeWidth;
 
-  /// 触发返回的滑动距离阈值
+  /// iOS 触发返回的滑动距离阈值
   final double swipeThreshold;
 
   @override
-  State<IOSSwipeBackDetector> createState() => _IOSSwipeBackDetectorState();
+  State<PopBackHandler> createState() => _PopBackHandlerState();
 }
 
-class _IOSSwipeBackDetectorState extends State<IOSSwipeBackDetector> {
+class _PopBackHandlerState extends State<PopBackHandler> {
   double _startX = 0;
   bool _isEdgeSwipe = false;
 
-  bool enabled = false;
+  bool _isIOS = false;
+
   @override
   void initState() {
     super.initState();
-    enabled = Platform.isIOS;
+    _isIOS = Platform.isIOS;
   }
 
   @override
   Widget build(BuildContext context) {
-    if (!enabled) {
+    return PopScope(
+      canPop: widget.canPop,
+      onPopInvokedWithResult: (bool didPop, Object? result) {
+        if (!didPop) {
+          widget.onPopRequested();
+        }
+      },
+      child: _buildIOSSwipeDetector(context),
+    );
+  }
+
+  Widget _buildIOSSwipeDetector(BuildContext context) {
+    if (!_isIOS) {
       return widget.child;
     }
 
@@ -72,7 +94,7 @@ class _IOSSwipeBackDetectorState extends State<IOSSwipeBackDetector> {
 
         // 滑动距离超过阈值，触发返回
         if (deltaX > widget.swipeThreshold) {
-          widget.onSwipeBack();
+          widget.onPopRequested();
         }
 
         _isEdgeSwipe = false;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:pop_demo/ios_swipe_back_detector.dart';
+import 'package:pop_demo/pop_back_handler.dart' show PopBackHandler;
 
 void main() {
   runApp(const MyApp());
@@ -276,26 +276,15 @@ class _PopScopeTestCustomPageState extends State<PopScopeTestCustomPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      // canPop: false 阻止框架默认返回行为
-      canPop: false,
-      // 新回调：onPopInvokedWithResult（替代废弃的 onPopInvoked）
-      // 注意：iOS 侧滑在 canPop: false 时不会触发此回调，需要额外处理
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (!didPop) {
-          await _handlePopRequest();
-        }
-      },
-      child: IOSSwipeBackDetector(
-        // 仅在 iOS 平台启用侧滑检测
-        onSwipeBack: _handlePopRequest,
-        child: Scaffold(
-          appBar: AppBar(
-            title: const Text("PopScope 最新版示例"),
-            leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _handlePopRequest),
-          ),
-          body: const Center(child: Text("尝试系统返回或点击左上角返回\n（onPopInvokedWithResult）\n\niOS 侧滑返回已支持")),
+    return PopBackHandler(
+      // 统一处理所有返回事件（Android 返回键 + iOS 侧滑）
+      onPopRequested: _handlePopRequest,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text("PopScope 自定义版示例"),
+          leading: IconButton(icon: const Icon(Icons.arrow_back), onPressed: _handlePopRequest),
         ),
+        body: const Center(child: Text("尝试系统返回或点击左上角返回\n\n已统一封装 PopScope + iOS 侧滑检测")),
       ),
     );
   }
