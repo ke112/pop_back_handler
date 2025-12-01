@@ -35,7 +35,8 @@ assets/compile_time/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+**/build/
+pubspec.lock
 
 # Symbolication related
 app.*.symbols
@@ -92,3 +93,22 @@ ios/Flutter/ephemeral/
 ios/Flutter/flutter_assets/
 
 dev_scripts/build/
+
+# Example project build artifacts
+example/build/
+example/.dart_tool/
+example/android/.gradle/
+example/ios/Pods/
+example/ios/.symlinks/
+example/macos/Pods/
+example/macos/.symlinks/
+example/linux/flutter/ephemeral/
+example/windows/flutter/ephemeral/
+
+# Lock files (not needed for library packages)
+example/pubspec.lock
+
+# Generated files
+*.g.dart
+*.freezed.dart
+*.mocks.dart
