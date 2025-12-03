@@ -1,9 +1,9 @@
 name: pop_back_handler
 description: A Flutter widget that provides unified handling for back navigation events, integrating PopScope with iOS swipe-back gesture detection.
 version: 1.0.0
-homepage: https://github.com/user/pop_back_handler
-repository: https://github.com/user/pop_back_handler
-issue_tracker: https://github.com/user/pop_back_handler/issues
+homepage: https://github.com/ke112
+repository: https://github.com/ke112/pop_back_handler
+issue_tracker: https://github.com/ke112/pop_back_handler/issues
 
 environment:
   sdk: ^3.0.0
