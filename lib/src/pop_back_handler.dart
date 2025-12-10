@@ -2,12 +2,14 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+typedef PopInvokedWithResultCallback<T> = void Function(bool didPop, T? result);
+
 /// A unified back event handler widget.
 /// Integrates PopScope + iOS swipe-back detection, exposing only one callback.
 ///
 /// 统一的返回事件处理器
 /// 集成 PopScope + iOS 侧滑检测，对外只暴露一个回调
-class PopBackHandler extends StatefulWidget {
+class PopBackHandler<T> extends StatefulWidget {
   const PopBackHandler({
     super.key,
     required this.child,
@@ -25,7 +27,7 @@ class PopBackHandler extends StatefulWidget {
   ///
   /// 统一的返回事件回调
   /// 当用户尝试返回时触发（Android 返回键、iOS 侧滑）
-  final VoidCallback onPopRequested;
+  final PopInvokedWithResultCallback<T> onPopRequested;
 
   /// Whether to enable back interception.
   /// - `true`: Intercepts back events and handles them via [onPopRequested] callback.
@@ -47,10 +49,10 @@ class PopBackHandler extends StatefulWidget {
   final double swipeThreshold;
 
   @override
-  State<PopBackHandler> createState() => _PopBackHandlerState();
+  State<PopBackHandler<T>> createState() => _PopBackHandlerState<T>();
 }
 
-class _PopBackHandlerState extends State<PopBackHandler> {
+class _PopBackHandlerState<T> extends State<PopBackHandler<T>> {
   double _startX = 0;
   bool _isEdgeSwipe = false;
 
@@ -66,10 +68,10 @@ class _PopBackHandlerState extends State<PopBackHandler> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: !widget.enableInterceptBack,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (!didPop) {
-          widget.onPopRequested();
-        }
+      onPopInvokedWithResult: (bool didPop, T? result) {
+        // didPop = true: 页面已经被 pop，可用于处理销毁/清理工作
+        // didPop = false: pop 被拦截，可用于显示确认对话框等
+        widget.onPopRequested(didPop, result);
       },
       child: _buildIOSSwipeDetector(context),
     );
@@ -110,8 +112,9 @@ class _PopBackHandlerState extends State<PopBackHandler> {
         final deltaX = isRTL ? (_startX - currentX) : (currentX - _startX);
 
         // Trigger back if swipe distance exceeds threshold
+        // iOS 侧滑触发时传递 didPop = false，让用户决定是否 pop
         if (deltaX > widget.swipeThreshold) {
-          widget.onPopRequested();
+          widget.onPopRequested(false, null);
         }
 
         _isEdgeSwipe = false;

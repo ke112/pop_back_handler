@@ -89,7 +89,13 @@ class _PopBackHandlerDemoPageState extends State<PopBackHandlerDemoPage> {
   @override
   Widget build(BuildContext context) {
     return PopBackHandler(
-      onPopRequested: _handlePopRequest,
+      enableInterceptBack: true,
+      onPopRequested: (didPop, result) {
+        debugPrint("enableInterceptBack : true   didPop: $didPop, result: $result");
+        if (!didPop) {
+          _handlePopRequest();
+        }
+      },
       child: Scaffold(
         appBar: AppBar(
           title: const Text("PopBackHandler Demo"),
@@ -131,10 +137,10 @@ class DisabledInterceptPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopBackHandler(
       enableInterceptBack: false,
-      onPopRequested: () {
+      onPopRequested: (didPop, result) {
         // This won't be called when enableInterceptBack is false
         // 当拦截返回事件禁用时，不会调用这个回调
-        debugPrint("Pop requested (but interception is disabled)");
+        debugPrint("enableInterceptBack : false   didPop: $didPop, result: $result");
       },
       child: Scaffold(
         appBar: AppBar(title: const Text("Intercept Disabled")),
