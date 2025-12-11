@@ -14,7 +14,7 @@ class PopBackHandler<T> extends StatefulWidget {
     super.key,
     required this.child,
     required this.onPopRequested,
-    this.enableInterceptBack = true,
+    this.canPop = true,
     this.edgeWidth = 20.0,
     this.swipeThreshold = 100.0,
   });
@@ -29,14 +29,14 @@ class PopBackHandler<T> extends StatefulWidget {
   /// 当用户尝试返回时触发（Android 返回键、iOS 侧滑）
   final PopInvokedWithResultCallback<T> onPopRequested;
 
-  /// Whether to enable back interception.
-  /// - `true`: Intercepts back events and handles them via [onPopRequested] callback.
-  /// - `false`: Does not intercept, allows system default back behavior.
+  /// Whether the route can be popped.
+  /// - `true`: Allows system default back behavior.
+  /// - `false`: Intercepts back events and handles them via [onPopRequested] callback.
   ///
-  /// 是否开启拦截返回功能
-  /// - `true`: 拦截返回事件，通过 onPopRequested 回调处理
-  /// - `false`: 不拦截，允许系统默认返回行为
-  final bool enableInterceptBack;
+  /// 是否允许页面被 pop
+  /// - `true`: 允许系统默认返回行为
+  /// - `false`: 拦截返回事件，通过 onPopRequested 回调处理
+  final bool canPop;
 
   /// The width of the edge trigger zone on iOS (in logical pixels).
   ///
@@ -67,7 +67,7 @@ class _PopBackHandlerState<T> extends State<PopBackHandler<T>> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: !widget.enableInterceptBack,
+      canPop: widget.canPop,
       onPopInvokedWithResult: (bool didPop, T? result) {
         // didPop = true: 页面已经被 pop，可用于处理销毁/清理工作
         // didPop = false: pop 被拦截，可用于显示确认对话框等
@@ -78,9 +78,9 @@ class _PopBackHandlerState<T> extends State<PopBackHandler<T>> {
   }
 
   Widget _buildIOSSwipeDetector(BuildContext context) {
-    // On non-iOS platforms or when interception is disabled, return child directly.
-    // When interception is disabled, iOS system swipe-back gesture works normally.
-    if (!_isIOS || !widget.enableInterceptBack) {
+    // On non-iOS platforms or when canPop is true, return child directly.
+    // When canPop is true, iOS system swipe-back gesture works normally.
+    if (!_isIOS || widget.canPop) {
       return widget.child;
     }
 
