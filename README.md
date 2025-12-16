@@ -3,7 +3,7 @@
 [![pub package](https://img.shields.io/pub/v/pop_back_handler.svg)](https://pub.dev/packages/pop_back_handler)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A Flutter widget that provides unified handling for back navigation events, integrating `PopScope` with iOS swipe-back gesture detection.
+A Flutter widget that provides unified handling for back navigation events, integrating `PopScope` with iOS swipe-back gesture detection.(一个 Flutter 小部件，提供统一的返回导航事件处理，并将 `PopScope` 与 iOS 的滑动返回手势检测功能集成。)
 
 ## Features
 

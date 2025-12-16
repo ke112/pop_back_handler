@@ -1,57 +1,16 @@
-# Build and generated files
-**/build/
-**/.dart_tool/
-**/.gradle/
-
-# IDE and editor files
-.idea/
-.vscode/
-*.iml
-*.ipr
-*.iws
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Git files
+# 核心排除项（发布包不需要这些）
+pubspec.lock
+example/pubspec.lock
 .git/
 .gitignore
-
-# Example project (not needed for package consumers)
+.idea/
+.vscode/
+build/
+.dart_tool/
+# example 目录下的构建产物
 example/build/
 example/.dart_tool/
-example/android/.gradle/
-example/android/app/build/
-example/ios/Pods/
-example/ios/.symlinks/
-example/ios/build/
-example/macos/Pods/
-example/macos/.symlinks/
-example/macos/Flutter/ephemeral/
-example/linux/flutter/ephemeral/
-example/windows/flutter/ephemeral/
-example/pubspec.lock
-
-# Lock files
-pubspec.lock
-
-# Test and CI files
-.github/
-coverage/
-test/
-
-# Documentation build
-doc/
-
-# Flutter plugin caches
-.flutter-plugins
-.flutter-plugins-dependencies
-.pub-cache/
-.pub/
-
-# Misc
+example/.idea/
+# 其他无关文件
 *.log
-*.patch
-.fvm/
-
+*.iml
