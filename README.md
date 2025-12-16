@@ -3,7 +3,9 @@
 [![pub package](https://img.shields.io/pub/v/pop_back_handler.svg)](https://pub.dev/packages/pop_back_handler)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-A Flutter widget that provides unified handling for back navigation events, integrating `PopScope` with iOS swipe-back gesture detection.(一个 Flutter 小部件，提供统一的返回导航事件处理，并将 `PopScope` 与 iOS 的滑动返回手势检测功能集成。)
+A Flutter widget that provides unified handling for back navigation events, integrating `PopScope` with iOS swipe-back gesture detection.
+
+一个 Flutter 小部件，提供统一的返回导航事件处理，并将 `PopScope` 与 iOS 的滑动返回手势检测功能集成。
 
 ## Features
 
@@ -46,11 +48,15 @@ class MyPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return PopBackHandler(
-      onPopRequested: () async {
-        // Handle back navigation
-        final shouldPop = await showConfirmDialog(context);
-        if (shouldPop && context.mounted) {
-          Navigator.pop(context);
+      canPop: false, // Intercept back events
+      onPopRequested: (didPop, result) async {
+        // didPop = true: Page was already popped
+        // didPop = false: Pop was intercepted, handle it here
+        if (!didPop) {
+          final shouldPop = await showConfirmDialog(context);
+          if (shouldPop && context.mounted) {
+            Navigator.pop(context);
+          }
         }
       },
       child: Scaffold(
@@ -67,8 +73,20 @@ class MyPage extends StatelessWidget {
 Don't forget to also handle the AppBar's back button:
 
 ```dart
+Future<void> _handleBack() async {
+  final shouldPop = await showConfirmDialog(context);
+  if (shouldPop && mounted) {
+    Navigator.pop(context);
+  }
+}
+
 PopBackHandler(
-  onPopRequested: _handleBack,
+  canPop: false,
+  onPopRequested: (didPop, result) {
+    if (!didPop) {
+      _handleBack();
+    }
+  },
   child: Scaffold(
     appBar: AppBar(
       title: Text('My Page'),
@@ -82,15 +100,16 @@ PopBackHandler(
 );
 ```
 
-### Disable Interception
+### Allow Normal Back Navigation
 
-You can disable interception to allow normal back navigation:
+You can allow normal back navigation by setting `canPop: true`:
 
 ```dart
 PopBackHandler(
-  enableInterceptBack: false,  // System back gesture works normally
-  onPopRequested: () {
-    // This won't be called when interception is disabled
+  canPop: true,  // System back gesture works normally (default)
+  onPopRequested: (didPop, result) {
+    // didPop will be true when page is popped normally
+    debugPrint('Page popped: $didPop, result: $result');
   },
   child: YourContent(),
 );
@@ -102,24 +121,34 @@ Adjust the edge detection sensitivity:
 
 ```dart
 PopBackHandler(
+  canPop: false,
   edgeWidth: 30.0,        // Edge trigger zone width (default: 20.0)
   swipeThreshold: 80.0,   // Swipe distance to trigger (default: 100.0)
-  onPopRequested: _handleBack,
+  onPopRequested: (didPop, result) {
+    if (!didPop) {
+      _handleBack();
+    }
+  },
   child: YourContent(),
 );
 ```
 
 ## API Reference
 
-### PopBackHandler
+### PopBackHandler\<T\>
 
-| Property              | Type           | Default  | Description                                |
-| --------------------- | -------------- | -------- | ------------------------------------------ |
-| `child`               | `Widget`       | required | The widget below this widget in the tree   |
-| `onPopRequested`      | `VoidCallback` | required | Callback when back navigation is requested |
-| `enableInterceptBack` | `bool`         | `true`   | Whether to intercept back events           |
-| `edgeWidth`           | `double`       | `20.0`   | iOS edge trigger zone width                |
-| `swipeThreshold`      | `double`       | `100.0`  | iOS swipe distance threshold               |
+| Property         | Type                                    | Default  | Description                                                              |
+| ---------------- | --------------------------------------- | -------- | ------------------------------------------------------------------------ |
+| `child`          | `Widget`                                | required | The widget below this widget in the tree                                 |
+| `onPopRequested` | `void Function(bool didPop, T? result)` | required | Callback when back navigation is attempted                               |
+| `canPop`         | `bool`                                  | `true`   | Whether the route can be popped. Set to `false` to intercept back events |
+| `edgeWidth`      | `double`                                | `20.0`   | iOS edge trigger zone width (in logical pixels)                          |
+| `swipeThreshold` | `double`                                | `100.0`  | iOS swipe distance threshold to trigger back (in logical pixels)         |
+
+### Callback Parameters
+
+- `didPop`: `true` if the page was already popped, `false` if the pop was intercepted
+- `result`: The result value passed when popping (if any)
 
 ## Example
 

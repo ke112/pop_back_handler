@@ -6,7 +6,7 @@
 ///
 /// ## Features
 /// - Intercepts Android back button press
-/// - Detects iOS edge swipe gestures (when interception is enabled)
+/// - Detects iOS edge swipe gestures (when `canPop: false`)
 /// - Supports both LTR and RTL layout directions
 /// - Simple API with single callback
 ///
@@ -14,10 +14,13 @@
 ///
 /// ```dart
 /// PopBackHandler(
-///   onPopRequested: () async {
-///     final shouldPop = await showConfirmDialog();
-///     if (shouldPop && mounted) {
-///       Navigator.pop(context);
+///   canPop: false, // Intercept back events
+///   onPopRequested: (didPop, result) async {
+///     if (!didPop) {
+///       final shouldPop = await showConfirmDialog();
+///       if (shouldPop && mounted) {
+///         Navigator.pop(context);
+///       }
 ///     }
 ///   },
 ///   child: YourPageContent(),
